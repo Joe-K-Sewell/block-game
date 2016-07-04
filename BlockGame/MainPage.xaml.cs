@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Microsoft.Graphics.Canvas.UI;
+using Microsoft.Graphics.Canvas.UI.Xaml;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -25,6 +27,27 @@ namespace BlockGame
         public MainPage()
         {
             this.InitializeComponent();
+        }
+
+        private void canvas_CreateResources(CanvasAnimatedControl sender, CanvasCreateResourcesEventArgs args)
+        {
+
+        }
+
+        private void canvas_Update(ICanvasAnimatedControl sender, CanvasAnimatedUpdateEventArgs args)
+        {
+
+        }
+
+        private void canvas_Draw(ICanvasAnimatedControl sender, CanvasAnimatedDrawEventArgs args)
+        {
+
+        }
+
+        private void Page_Unloaded(object sender, RoutedEventArgs e)
+        {
+            this.canvas.RemoveFromVisualTree();
+            this.canvas = null;
         }
     }
 }
