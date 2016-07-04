@@ -10,7 +10,7 @@
     mc:Ignorable="d">
 
     <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
-        <canvas:CanvasAnimatedControl x:Name="canvas" ClearColor="DarkBlue" 
+        <canvas:CanvasAnimatedControl x:Name="canvas" ClearColor="Black"
                                       CreateResources="canvas_CreateResources"
                                       Update="canvas_Update"
                                       Draw="canvas_Draw"/>

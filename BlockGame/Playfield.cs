@@ -33,6 +33,11 @@ namespace BlockGame
             }
         }
 
+        public BlockTypes BlockAt(int row, int column)
+        {
+            return Grid[row, column];
+        }
+
 
     }
 }
