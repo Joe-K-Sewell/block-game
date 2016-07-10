@@ -12,6 +12,9 @@ namespace BlockGame
         Red,
         White,
         Blue,
+        Green,
+        Yellow,
+        Brown,
         MaxValue
     }
 
