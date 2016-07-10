@@ -1,4 +1,5 @@
-﻿using Microsoft.Graphics.Canvas.Brushes;
+﻿using Microsoft.Graphics.Canvas;
+using Microsoft.Graphics.Canvas.Brushes;
 using Microsoft.Graphics.Canvas.UI;
 using Microsoft.Graphics.Canvas.UI.Xaml;
 using System;
@@ -27,62 +28,87 @@ namespace BlockGame
     /// </summary>
     public sealed partial class MainPage : Page
     {
-        Playfield field = new Playfield();
-        Vector2 gridOrigin = new Vector2(50, 50);
-        Vector2 blockWidth = new Vector2(30, 0);
-        Vector2 spaceWidth = new Vector2(40, 0);
-        Vector2 blockHeight = new Vector2(0, 30);
-        Vector2 spaceHeight = new Vector2(0, 40);
+        private class VisualBlock
+        {
+            GameBlock UnderlyingBlock;
+            
+            public VisualBlock(GameBlock gb)
+            {
+                UnderlyingBlock = gb;
+            }
+
+            private Color FillColor
+            {
+                get
+                {
+                    switch (UnderlyingBlock.Color)
+                    {
+                        case GameColor.Empty:
+                            return Colors.Black;
+                        case GameColor.Red:
+                            return Colors.Red;
+                        case GameColor.White:
+                            return Colors.White;
+                        case GameColor.Blue:
+                            return Colors.Blue;
+                    }
+                    throw new NotImplementedException();
+                }
+            }
+
+            private Vector2 SpaceOrigin
+            {
+                get
+                {
+                    return gridOrigin
+                        + (spaceWidth * UnderlyingBlock.Column)
+                        + (spaceHeight * UnderlyingBlock.Row);
+                }
+            }
+
+            public void Draw(CanvasDrawingSession session)
+            {
+                var blockOrigin = SpaceOrigin;
+                float strokeSize = blockWidth.X / 2.0f;
+
+                session.DrawRectangle(
+                    blockOrigin.X + strokeSize, blockOrigin.Y + strokeSize,
+                    blockWidth.X - strokeSize, blockHeight.Y - strokeSize,
+                    FillColor, strokeSize);
+            }
+        }
+
+        List<VisualBlock> blocks;
+        static readonly Vector2 gridOrigin = new Vector2(50, 50);
+        static readonly Vector2 blockWidth = new Vector2(30, 0);
+        static readonly Vector2 spaceWidth = new Vector2(40, 0);
+        static readonly Vector2 blockHeight = new Vector2(0, 30);
+        static readonly Vector2 spaceHeight = new Vector2(0, 40);
         
         public MainPage()
         {
             this.InitializeComponent();
+
+            var field = new Playfield();
+            field.GenerateBlocks();
+
+            blocks = field.blocks.Select(gb => new VisualBlock(gb)).ToList();
         }
 
         private void canvas_CreateResources(CanvasAnimatedControl sender, CanvasCreateResourcesEventArgs args)
         {
-            sender.TargetElapsedTime = TimeSpan.FromMilliseconds(250);
         }
 
         private void canvas_Update(ICanvasAnimatedControl sender, CanvasAnimatedUpdateEventArgs args)
         {
-            field.GenerateBlocks();
+            
         }
 
         private void canvas_Draw(ICanvasAnimatedControl sender, CanvasAnimatedDrawEventArgs args)
         {
-            for (int r = 0; r < Playfield.HEIGHT; r++)
+            foreach (var vb in blocks)
             {
-                for (int c = 0; c < Playfield.WIDTH; c++)
-                {
-                    var blockOrigin = gridOrigin
-                        + (spaceWidth * c)
-                        + (spaceHeight * r);
-
-                    Color color;
-                    switch (field.BlockAt(r, c))
-                    {
-                        case BlockTypes.Empty:
-                            color = Colors.Black;
-                            break;
-                        case BlockTypes.Red:
-                            color = Colors.Red;
-                            break;
-                        case BlockTypes.White:
-                            color = Colors.White;
-                            break;
-                        case BlockTypes.Blue:
-                            color = Colors.Blue;
-                            break;
-                    }
-
-                    float strokeSize = blockWidth.X / 2.0f;
-
-                    args.DrawingSession.DrawRectangle(
-                        blockOrigin.X + strokeSize, blockOrigin.Y + strokeSize,
-                        blockWidth.X - strokeSize, blockHeight.Y - strokeSize, 
-                        color, strokeSize);
-                }
+                vb.Draw(args.DrawingSession);
             }
         }
 
