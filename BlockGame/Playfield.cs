@@ -24,8 +24,9 @@ namespace BlockGame
         // but for now there's only the landed group
 
         public readonly GameColor Color;
-        public int Row { get; private set; }
-        public int Column { get; private set; }
+        public int Row { get; internal set; }
+        public int Column { get; internal set; }
+        public bool Swapping { get; internal set; }
 
         public GameBlock(int row, int column, GameColor color)
         {
@@ -55,6 +56,36 @@ namespace BlockGame
                     blocks.Add(
                         new GameBlock(r, c, (GameColor) rand.Next((int)GameColor.Red, (int)GameColor.MaxValue)));
                 }
+            }
+        }
+
+        internal void SetBlockSwapping(GameBlock underlyingBlock)
+        {
+            // find out if any existing blocks are swapping
+            GameBlock preExistingBlock = null;
+            foreach (var gb in blocks)
+            {
+                if (gb.Swapping)
+                {
+                    preExistingBlock = gb;
+                }
+            }
+            
+            if (preExistingBlock == null)
+            {
+                // If not, mark the block as swapping
+                underlyingBlock.Swapping = true;
+            }
+            else
+            {
+                // If so, swap the blocks!
+                int tempRow = preExistingBlock.Row;
+                int tempCol = preExistingBlock.Column;
+                preExistingBlock.Row = underlyingBlock.Row;
+                preExistingBlock.Column = underlyingBlock.Column;
+                underlyingBlock.Row = tempRow;
+                underlyingBlock.Column = tempCol;
+                preExistingBlock.Swapping = false;
             }
         }
     }

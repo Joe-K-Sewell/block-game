@@ -13,6 +13,7 @@
         <canvas:CanvasAnimatedControl x:Name="canvas" ClearColor="Black"
                                       CreateResources="canvas_CreateResources"
                                       Update="canvas_Update"
-                                      Draw="canvas_Draw"/>
+                                      Draw="canvas_Draw"
+                                      PointerPressed="canvas_PointerPressed" />
     </Grid>
 </Page>

@@ -21,7 +21,7 @@ namespace BlockGame
     {
         private class VisualBlock
         {
-            GameBlock UnderlyingBlock;
+            public GameBlock UnderlyingBlock { get; private set; }
             
             public VisualBlock(GameBlock gb)
             {
@@ -63,7 +63,7 @@ namespace BlockGame
                 }
             }
 
-            private Rect FilledRectangle
+            private Rect MainRect
             {
                 get
                 {
@@ -75,9 +75,27 @@ namespace BlockGame
                 }
             }
 
+            private Rect BackRect
+            {
+                get
+                {
+                    return new Rect(SpaceOrigin.X, SpaceOrigin.Y,
+                        spaceWidth.X, spaceHeight.Y);
+                }
+            }
+
+            public bool PointInMainRect(Point p)
+            {
+                return MainRect.Contains(p);
+            }
+
             public void Draw(CanvasDrawingSession session)
             {
-                session.DrawRectangle(FilledRectangle, FillColor, strokeSize);
+                if (UnderlyingBlock.Swapping)
+                {
+                    session.DrawRectangle(BackRect, Colors.Aqua, 2);
+                }
+                session.DrawRectangle(MainRect, FillColor, strokeSize);
             }
         }
 
@@ -89,12 +107,14 @@ namespace BlockGame
                 return field.blocks.Select(gb => new VisualBlock(gb)).ToList();
             }
         }
-        static readonly Vector2 gridOrigin = new Vector2(50, 50);
+        string debugString = "Debug String Initial Value";
+
+        static readonly Vector2 gridOrigin = new Vector2(50, 60);
         static readonly Vector2 blockWidth = new Vector2(50, 0);
         static readonly Vector2 spaceWidth = new Vector2(60, 0);
         static readonly Vector2 blockHeight = new Vector2(0, 50);
         static readonly Vector2 spaceHeight = new Vector2(0, 60);
-        static readonly float spaceSize = blockWidth.X / 2.0f;
+        static readonly float spaceSize = blockWidth.X / 2.0f; // denom can't be > 2
         static readonly float strokeSize = blockWidth.X - spaceSize;
 
         public MainPage()
@@ -117,6 +137,7 @@ namespace BlockGame
 
         private void canvas_Draw(ICanvasAnimatedControl sender, CanvasAnimatedDrawEventArgs args)
         {
+            args.DrawingSession.DrawText(debugString, new Vector2(0, 0), Colors.LightGreen);
             foreach (var vb in blocks)
             {
                 vb.Draw(args.DrawingSession);
@@ -127,6 +148,21 @@ namespace BlockGame
         {
             this.canvas.RemoveFromVisualTree();
             this.canvas = null;
+        }
+
+        private void canvas_PointerPressed(object sender, Windows.UI.Xaml.Input.PointerRoutedEventArgs e)
+        {
+            var point = e.GetCurrentPoint(canvas).Position;
+            debugString = String.Format("Pressed at {0},{1}", point.X, point.Y);
+
+            foreach (var vb in blocks)
+            {
+                if (vb.PointInMainRect(point))
+                {
+                    field.SetBlockSwapping(vb.UnderlyingBlock);
+                    break;
+                }
+            }
         }
     }
 }
