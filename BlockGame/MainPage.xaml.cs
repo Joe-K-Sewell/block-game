@@ -1,23 +1,14 @@
 ﻿using Microsoft.Graphics.Canvas;
-using Microsoft.Graphics.Canvas.Brushes;
 using Microsoft.Graphics.Canvas.UI;
 using Microsoft.Graphics.Canvas.UI.Xaml;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Numerics;
-using System.Runtime.InteropServices.WindowsRuntime;
 using Windows.Foundation;
-using Windows.Foundation.Collections;
 using Windows.UI;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
-using Windows.UI.Xaml.Controls.Primitives;
-using Windows.UI.Xaml.Data;
-using Windows.UI.Xaml.Input;
-using Windows.UI.Xaml.Media;
-using Windows.UI.Xaml.Navigation;
 
 // The Blank Page item template is documented at http://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409
 
@@ -66,42 +57,56 @@ namespace BlockGame
                 }
             }
 
+            private Rect FilledRectangle
+            {
+                get
+                {
+                    return new Rect(
+                        SpaceOrigin.X + spaceSize,
+                        SpaceOrigin.Y + spaceSize,
+                        blockWidth.X - spaceSize,
+                        blockHeight.Y - spaceSize);
+                }
+            }
+
             public void Draw(CanvasDrawingSession session)
             {
-                var blockOrigin = SpaceOrigin;
-                float strokeSize = blockWidth.X / 2.0f;
-
-                session.DrawRectangle(
-                    blockOrigin.X + strokeSize, blockOrigin.Y + strokeSize,
-                    blockWidth.X - strokeSize, blockHeight.Y - strokeSize,
-                    FillColor, strokeSize);
+                session.DrawRectangle(FilledRectangle, FillColor, strokeSize);
             }
         }
 
-        List<VisualBlock> blocks;
+        Playfield field;
+        List<VisualBlock> blocks
+        {
+            get
+            {
+                return field.blocks.Select(gb => new VisualBlock(gb)).ToList();
+            }
+        }
         static readonly Vector2 gridOrigin = new Vector2(50, 50);
-        static readonly Vector2 blockWidth = new Vector2(30, 0);
-        static readonly Vector2 spaceWidth = new Vector2(40, 0);
-        static readonly Vector2 blockHeight = new Vector2(0, 30);
-        static readonly Vector2 spaceHeight = new Vector2(0, 40);
-        
+        static readonly Vector2 blockWidth = new Vector2(50, 0);
+        static readonly Vector2 spaceWidth = new Vector2(60, 0);
+        static readonly Vector2 blockHeight = new Vector2(0, 50);
+        static readonly Vector2 spaceHeight = new Vector2(0, 60);
+        static readonly float spaceSize = blockWidth.X / 2.0f;
+        static readonly float strokeSize = blockWidth.X - spaceSize;
+
         public MainPage()
         {
             this.InitializeComponent();
 
-            var field = new Playfield();
+            field = new Playfield();
             field.GenerateBlocks();
-
-            blocks = field.blocks.Select(gb => new VisualBlock(gb)).ToList();
         }
 
         private void canvas_CreateResources(CanvasAnimatedControl sender, CanvasCreateResourcesEventArgs args)
         {
+
         }
 
         private void canvas_Update(ICanvasAnimatedControl sender, CanvasAnimatedUpdateEventArgs args)
         {
-            
+
         }
 
         private void canvas_Draw(ICanvasAnimatedControl sender, CanvasAnimatedDrawEventArgs args)
