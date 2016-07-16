@@ -14,6 +14,7 @@
                                       CreateResources="canvas_CreateResources"
                                       Update="canvas_Update"
                                       Draw="canvas_Draw"
-                                      PointerPressed="canvas_PointerPressed" />
+                                      PointerPressed="canvas_PointerPressed"
+                                      PointerReleased="canvas_PointerReleased"/>
     </Grid>
 </Page>

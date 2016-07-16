@@ -54,7 +54,7 @@ namespace BlockGame
                 }
             }
 
-            private static Vector2 GridOrigin = new Vector2(50, 50);
+            private static Vector2 GridOrigin = new Vector2(150, 150);
             private static Vector2 OutlineSize = new Vector2(100, 100);
             private static float FillRadius = 40;
             private static Vector2 FillVector = new Vector2(FillRadius, FillRadius);
@@ -169,10 +169,29 @@ namespace BlockGame
             {
                 if (vb.PointHit(point))
                 {
-                    field.SetBlockSwapping(vb.UnderlyingBlock);
-                    break;
+                    field.SetSourceBlock(vb.UnderlyingBlock);
+                    return;
                 }
             }
+
+            field.ResetBlockSwap();
+        }
+
+        private void canvas_PointerReleased(object sender, Windows.UI.Xaml.Input.PointerRoutedEventArgs e)
+        {
+            var point = e.GetCurrentPoint(canvas).Position;
+            debugString = String.Format("Released at {0},{1}", point.X, point.Y);
+
+            foreach (var vb in blocks)
+            {
+                if (vb.PointHit(point))
+                {
+                    field.SetDestinationBlock(vb.UnderlyingBlock);
+                    return;
+                }
+            }
+
+            field.ResetBlockSwap();
         }
     }
 }

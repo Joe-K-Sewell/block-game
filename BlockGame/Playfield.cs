@@ -79,14 +79,46 @@ namespace BlockGame
             else
             {
                 // If so, swap the blocks!
-                int tempRow = preExistingBlock.Row;
-                int tempCol = preExistingBlock.Column;
-                preExistingBlock.Row = underlyingBlock.Row;
-                preExistingBlock.Column = underlyingBlock.Column;
-                underlyingBlock.Row = tempRow;
-                underlyingBlock.Column = tempCol;
-                preExistingBlock.Swapping = false;
             }
+        }
+
+        private GameBlock SourceBlock
+        {
+            get
+            {
+                return blocks.SingleOrDefault(b => b.Swapping);
+            }
+        }
+
+        internal void ResetBlockSwap()
+        {
+            if (SourceBlock != null)
+            {
+                SourceBlock.Swapping = false;
+            }
+        }
+
+        internal void SetSourceBlock(GameBlock underlyingBlock)
+        {
+            underlyingBlock.Swapping = true;
+        }
+
+        internal void SetDestinationBlock(GameBlock underlyingBlock)
+        {
+            if (SourceBlock == null) { return; }
+
+            SwapBlocks(SourceBlock, underlyingBlock);
+            ResetBlockSwap();
+        }
+
+        private void SwapBlocks(GameBlock gb1, GameBlock gb2)
+        {
+            int tempRow = gb1.Row;
+            int tempCol = gb1.Column;
+            gb1.Row = gb2.Row;
+            gb1.Column = gb2.Column;
+            gb2.Row = tempRow;
+            gb2.Column = tempCol;
         }
     }
 }
