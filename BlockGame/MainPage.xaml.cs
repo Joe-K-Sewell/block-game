@@ -56,8 +56,8 @@ namespace BlockGame
 
             private static Vector2 GridOrigin = new Vector2(150, 150);
             private static Vector2 OutlineSize = new Vector2(100, 100);
-            private static float FillRadius = 40;
-            private static Vector2 FillVector = new Vector2(FillRadius, FillRadius);
+            private static float FillDiameter = 80;
+            private static Vector2 FillVector = new Vector2(FillDiameter, FillDiameter);
 
             private Vector2 Center
             {
@@ -107,13 +107,13 @@ namespace BlockGame
             {
                 if (UnderlyingBlock.Swapping)
                 {
-                    session.DrawRectangle(OutlineRect, Colors.Aqua, 3);
+                    session.DrawRectangle(OutlineRect, Colors.Aqua, 5);
                 }
                 else
                 {
-                    session.DrawRectangle(OutlineRect, Colors.White);
+                    session.DrawRectangle(OutlineRect, Colors.White, 1);
                 }
-                session.DrawRectangle(FillableRect, FillColor, FillRadius);
+                session.FillRectangle(FillableRect, FillColor);
             }
         }
 
