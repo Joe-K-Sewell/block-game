@@ -1,4 +1,5 @@
 ﻿using Microsoft.Graphics.Canvas;
+using Microsoft.Graphics.Canvas.Brushes;
 using Microsoft.Graphics.Canvas.UI;
 using Microsoft.Graphics.Canvas.UI.Xaml;
 using System;
@@ -53,49 +54,66 @@ namespace BlockGame
                 }
             }
 
-            private Vector2 SpaceOrigin
+            private static Vector2 GridOrigin = new Vector2(50, 50);
+            private static Vector2 OutlineSize = new Vector2(100, 100);
+            private static float FillRadius = 40;
+            private static Vector2 FillVector = new Vector2(FillRadius, FillRadius);
+
+            private Vector2 Center
             {
                 get
                 {
-                    return gridOrigin
-                        + (spaceWidth * UnderlyingBlock.Column)
-                        + (spaceHeight * UnderlyingBlock.Row);
+                    return
+                        GridOrigin + 
+                        (OutlineSize * new Vector2(UnderlyingBlock.Column, UnderlyingBlock.Row));
                 }
             }
 
-            private Rect MainRect
+            private Vector2 OutlineOrigin
             {
                 get
                 {
-                    return new Rect(
-                        SpaceOrigin.X + spaceSize,
-                        SpaceOrigin.Y + spaceSize,
-                        blockWidth.X - spaceSize,
-                        blockHeight.Y - spaceSize);
+                    return Center - (OutlineSize / 2.0f);
                 }
             }
 
-            private Rect BackRect
+            private Rect OutlineRect
             {
                 get
                 {
-                    return new Rect(SpaceOrigin.X, SpaceOrigin.Y,
-                        spaceWidth.X, spaceHeight.Y);
+                    return new Rect(OutlineOrigin.ToPoint(), OutlineSize.ToSize());
                 }
             }
 
-            public bool PointInMainRect(Point p)
+            private Vector2 FillableOrigin
             {
-                return MainRect.Contains(p);
+                get { return Center - (FillVector / 2.0f); }
+            }
+
+            private Rect FillableRect
+            {
+                get
+                {
+                    return new Rect(FillableOrigin.ToPoint(), FillVector.ToSize());
+                }
+            }
+            
+            public bool PointHit(Point p)
+            {
+                return OutlineRect.Contains(p);
             }
 
             public void Draw(CanvasDrawingSession session)
             {
                 if (UnderlyingBlock.Swapping)
                 {
-                    session.DrawRectangle(BackRect, Colors.Aqua, 2);
+                    session.DrawRectangle(OutlineRect, Colors.Aqua, 3);
                 }
-                session.DrawRectangle(MainRect, FillColor, strokeSize);
+                else
+                {
+                    session.DrawRectangle(OutlineRect, Colors.White);
+                }
+                session.DrawRectangle(FillableRect, FillColor, FillRadius);
             }
         }
 
@@ -108,14 +126,6 @@ namespace BlockGame
             }
         }
         string debugString = "Debug String Initial Value";
-
-        static readonly Vector2 gridOrigin = new Vector2(50, 60);
-        static readonly Vector2 blockWidth = new Vector2(50, 0);
-        static readonly Vector2 spaceWidth = new Vector2(60, 0);
-        static readonly Vector2 blockHeight = new Vector2(0, 50);
-        static readonly Vector2 spaceHeight = new Vector2(0, 60);
-        static readonly float spaceSize = blockWidth.X / 2.0f; // denom can't be > 2
-        static readonly float strokeSize = blockWidth.X - spaceSize;
 
         public MainPage()
         {
@@ -137,11 +147,11 @@ namespace BlockGame
 
         private void canvas_Draw(ICanvasAnimatedControl sender, CanvasAnimatedDrawEventArgs args)
         {
-            args.DrawingSession.DrawText(debugString, new Vector2(0, 0), Colors.LightGreen);
             foreach (var vb in blocks)
             {
                 vb.Draw(args.DrawingSession);
             }
+            args.DrawingSession.DrawText(debugString, new Vector2(0, 0), Colors.LightGreen);
         }
 
         private void Page_Unloaded(object sender, RoutedEventArgs e)
@@ -157,7 +167,7 @@ namespace BlockGame
 
             foreach (var vb in blocks)
             {
-                if (vb.PointInMainRect(point))
+                if (vb.PointHit(point))
                 {
                     field.SetBlockSwapping(vb.UnderlyingBlock);
                     break;
