@@ -103,8 +103,9 @@ namespace BlockGame
                 return OutlineRect.Contains(p);
             }
 
-            public void Draw(CanvasDrawingSession session)
+            public void DrawInGrid(CanvasDrawingSession session)
             {
+                // Draw outline
                 if (UnderlyingBlock.Swapping)
                 {
                     session.DrawRectangle(OutlineRect, Colors.Aqua, 5);
@@ -113,7 +114,21 @@ namespace BlockGame
                 {
                     session.DrawRectangle(OutlineRect, Colors.White, 1);
                 }
-                session.FillRectangle(FillableRect, FillColor);
+
+                // Draw filled square
+                if (!UnderlyingBlock.Swapping)
+                {
+                    session.FillRectangle(FillableRect, FillColor);
+                    session.DrawRectangle(FillableRect, Colors.Gray, 2);
+                }
+            }
+
+            public void DrawAtHolp(CanvasDrawingSession session, Vector2 holp)
+            {
+                var origin = holp - (FillVector / 2.0f);
+                var movingRect = new Rect(origin.ToPoint(), FillVector.ToSize());
+                session.FillRectangle(movingRect, FillColor);
+                session.DrawRectangle(movingRect, Colors.Gray, 2);
             }
         }
 
@@ -126,6 +141,7 @@ namespace BlockGame
             }
         }
         string debugString = "Debug String Initial Value";
+        Vector2 HeldObjectsLastPosition = Vector2.Zero;
 
         public MainPage()
         {
@@ -149,9 +165,15 @@ namespace BlockGame
         {
             foreach (var vb in blocks)
             {
-                vb.Draw(args.DrawingSession);
+                vb.DrawInGrid(args.DrawingSession);
+            }
+            var held = blocks.SingleOrDefault(b => b.UnderlyingBlock.Swapping);
+            if (held != null)
+            {
+                held.DrawAtHolp(args.DrawingSession, HeldObjectsLastPosition);
             }
             args.DrawingSession.DrawText(debugString, new Vector2(0, 0), Colors.LightGreen);
+            args.DrawingSession.DrawText("HOLP: " + HeldObjectsLastPosition.ToString(), new Vector2(0, 25), Colors.LightGreen);
         }
 
         private void Page_Unloaded(object sender, RoutedEventArgs e)
@@ -170,6 +192,7 @@ namespace BlockGame
                 if (vb.PointHit(point))
                 {
                     field.SetSourceBlock(vb.UnderlyingBlock);
+                    HeldObjectsLastPosition = point.ToVector2();
                     return;
                 }
             }
@@ -192,6 +215,15 @@ namespace BlockGame
             }
 
             field.ResetBlockSwap();
+        }
+
+        private void canvas_PointerMoved(object sender, Windows.UI.Xaml.Input.PointerRoutedEventArgs e)
+        {
+            var point = e.GetCurrentPoint(canvas).Position;
+            if (e.Pointer.IsInContact) // Good enough
+            {
+                HeldObjectsLastPosition = point.ToVector2();
+            }
         }
     }
 }

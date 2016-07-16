@@ -15,6 +15,7 @@
                                       Update="canvas_Update"
                                       Draw="canvas_Draw"
                                       PointerPressed="canvas_PointerPressed"
-                                      PointerReleased="canvas_PointerReleased"/>
+                                      PointerReleased="canvas_PointerReleased"
+                                      PointerMoved="canvas_PointerMoved" />
     </Grid>
 </Page>
