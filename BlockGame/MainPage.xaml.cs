@@ -103,24 +103,20 @@ namespace BlockGame
                 return OutlineRect.Contains(p);
             }
 
-            public void DrawInGrid(CanvasDrawingSession session)
+            public void DrawGridline(CanvasDrawingSession session)
             {
-                // Draw outline
-                if (UnderlyingBlock.Swapping)
-                {
-                    session.DrawRectangle(OutlineRect, Colors.Aqua, 5);
-                }
-                else
-                {
-                    session.DrawRectangle(OutlineRect, Colors.White, 1);
-                }
+                session.DrawRectangle(OutlineRect, Colors.White, 1);
+            }
 
-                // Draw filled square
-                if (!UnderlyingBlock.Swapping)
-                {
-                    session.FillRectangle(FillableRect, FillColor);
-                    session.DrawRectangle(FillableRect, Colors.Gray, 2);
-                }
+            public void DrawAtGrid(CanvasDrawingSession session)
+            {
+                session.FillRectangle(FillableRect, FillColor);
+                session.DrawRectangle(FillableRect, Colors.Gray, 2);
+            }
+
+            public void DrawHighlightedOutline(CanvasDrawingSession session)
+            {
+                session.DrawRectangle(OutlineRect, Colors.Aqua, 5);
             }
 
             public void DrawAtHolp(CanvasDrawingSession session, Vector2 holp)
@@ -163,16 +159,34 @@ namespace BlockGame
 
         private void canvas_Draw(ICanvasAnimatedControl sender, CanvasAnimatedDrawEventArgs args)
         {
+            var session = args.DrawingSession;
+            
+            // Draw grid
             foreach (var vb in blocks)
             {
-                vb.DrawInGrid(args.DrawingSession);
+                vb.DrawGridline(session);
+                if (vb.UnderlyingBlock != field.HeldBlock)
+                {
+                    vb.DrawAtGrid(session);
+                }
             }
-            var held = blocks.SingleOrDefault(b => b.UnderlyingBlock.Swapping);
+
+            // Draw extra outline
+            var target = GetVisualBlock(field.TargetBlock);
+            if (target != null)
+            {
+                target.DrawHighlightedOutline(session);
+            }
+
+            // Draw held block
+            var held = GetVisualBlock(field.HeldBlock);
             if (held != null)
             {
-                held.DrawAtHolp(args.DrawingSession, HeldObjectsLastPosition);
+                held.DrawAtHolp(session, HeldObjectsLastPosition);
             }
-            args.DrawingSession.DrawText(debugString, new Vector2(0, 0), Colors.LightGreen);
+
+            // Draw debug info
+            args.DrawingSession.DrawText("Held: " + field.HeldBlock + " Target: " + field.TargetBlock, new Vector2(0,0), Colors.LightGreen);
             args.DrawingSession.DrawText("HOLP: " + HeldObjectsLastPosition.ToString(), new Vector2(0, 25), Colors.LightGreen);
         }
 
@@ -182,48 +196,54 @@ namespace BlockGame
             this.canvas = null;
         }
 
+        private VisualBlock GetVisualBlock(GameBlock gb)
+        {
+            if (gb == null) { return null; }
+            return blocks.Single(vb => vb.UnderlyingBlock == gb);
+        }
+
+        private VisualBlock GetBlockUnder(Point p)
+        {
+            foreach (var b in blocks)
+            {
+                if (b.PointHit(p))
+                {
+                    return b;
+                }
+            }
+            return null;
+        }
+
         private void canvas_PointerPressed(object sender, Windows.UI.Xaml.Input.PointerRoutedEventArgs e)
         {
             var point = e.GetCurrentPoint(canvas).Position;
-            debugString = String.Format("Pressed at {0},{1}", point.X, point.Y);
+            var blockUnder = GetBlockUnder(point);
 
-            foreach (var vb in blocks)
+            if (blockUnder == null) { return; }
+            field.HeldBlock = GetBlockUnder(point).UnderlyingBlock;
+            field.TargetBlock = field.HeldBlock;
+
+            HeldObjectsLastPosition = point.ToVector2();
+        }
+        
+        private void canvas_PointerMoved(object sender, Windows.UI.Xaml.Input.PointerRoutedEventArgs e)
+        {
+            var point = e.GetCurrentPoint(canvas).Position;
+            var blockUnder = GetBlockUnder(point);
+            if (e.Pointer.IsInContact) // Good enough
             {
-                if (vb.PointHit(point))
+                HeldObjectsLastPosition = point.ToVector2();
+                if (blockUnder != null)
                 {
-                    field.SetSourceBlock(vb.UnderlyingBlock);
-                    HeldObjectsLastPosition = point.ToVector2();
-                    return;
+                    field.TargetBlock = blockUnder.UnderlyingBlock;
                 }
             }
-
-            field.ResetBlockSwap();
         }
 
         private void canvas_PointerReleased(object sender, Windows.UI.Xaml.Input.PointerRoutedEventArgs e)
         {
             var point = e.GetCurrentPoint(canvas).Position;
-            debugString = String.Format("Released at {0},{1}", point.X, point.Y);
-
-            foreach (var vb in blocks)
-            {
-                if (vb.PointHit(point))
-                {
-                    field.SetDestinationBlock(vb.UnderlyingBlock);
-                    return;
-                }
-            }
-
-            field.ResetBlockSwap();
-        }
-
-        private void canvas_PointerMoved(object sender, Windows.UI.Xaml.Input.PointerRoutedEventArgs e)
-        {
-            var point = e.GetCurrentPoint(canvas).Position;
-            if (e.Pointer.IsInContact) // Good enough
-            {
-                HeldObjectsLastPosition = point.ToVector2();
-            }
+            field.SwapBlocks();
         }
     }
 }

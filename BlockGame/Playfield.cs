@@ -26,13 +26,17 @@ namespace BlockGame
         public readonly GameColor Color;
         public int Row { get; internal set; }
         public int Column { get; internal set; }
-        public bool Swapping { get; internal set; }
 
         public GameBlock(int row, int column, GameColor color)
         {
             this.Row = row;
             this.Column = column;
             this.Color = color;
+        }
+
+        public override string ToString()
+        {
+            return "[" + Row + "," + Column + "] (" + Color + ")";
         }
     }
     
@@ -58,67 +62,23 @@ namespace BlockGame
                 }
             }
         }
-
-        internal void SetBlockSwapping(GameBlock underlyingBlock)
+        
+        public GameBlock HeldBlock { get; set; }
+        public GameBlock TargetBlock { get; set; }
+        
+        public void SwapBlocks()
         {
-            // find out if any existing blocks are swapping
-            GameBlock preExistingBlock = null;
-            foreach (var gb in blocks)
-            {
-                if (gb.Swapping)
-                {
-                    preExistingBlock = gb;
-                }
-            }
-            
-            if (preExistingBlock == null)
-            {
-                // If not, mark the block as swapping
-                underlyingBlock.Swapping = true;
-            }
-            else
-            {
-                // If so, swap the blocks!
-            }
-        }
+            if (HeldBlock == null || TargetBlock == null) { return; }
 
-        private GameBlock SourceBlock
-        {
-            get
-            {
-                return blocks.SingleOrDefault(b => b.Swapping);
-            }
-        }
+            int tempRow = HeldBlock.Row;
+            int tempCol = HeldBlock.Column;
+            HeldBlock.Row = TargetBlock.Row;
+            HeldBlock.Column = TargetBlock.Column;
+            TargetBlock.Row = tempRow;
+            TargetBlock.Column = tempCol;
 
-        internal void ResetBlockSwap()
-        {
-            if (SourceBlock != null)
-            {
-                SourceBlock.Swapping = false;
-            }
-        }
-
-        internal void SetSourceBlock(GameBlock underlyingBlock)
-        {
-            underlyingBlock.Swapping = true;
-        }
-
-        internal void SetDestinationBlock(GameBlock underlyingBlock)
-        {
-            if (SourceBlock == null) { return; }
-
-            SwapBlocks(SourceBlock, underlyingBlock);
-            ResetBlockSwap();
-        }
-
-        private void SwapBlocks(GameBlock gb1, GameBlock gb2)
-        {
-            int tempRow = gb1.Row;
-            int tempCol = gb1.Column;
-            gb1.Row = gb2.Row;
-            gb1.Column = gb2.Column;
-            gb2.Row = tempRow;
-            gb2.Column = tempCol;
+            HeldBlock = null;
+            TargetBlock = null;
         }
     }
 }
