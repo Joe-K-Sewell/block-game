@@ -54,9 +54,9 @@ namespace BlockGame
                 }
             }
 
-            private static Vector2 GridOrigin = new Vector2(150, 150);
-            private static Vector2 OutlineSize = new Vector2(100, 100);
-            private static float FillDiameter = 80;
+            private static Vector2 GridOrigin = new Vector2(50, 50);
+            private static Vector2 OutlineSize = new Vector2(50, 50);
+            private static float FillDiameter = 40;
             private static Vector2 FillVector = new Vector2(FillDiameter, FillDiameter);
 
             private Vector2 Center
@@ -136,7 +136,6 @@ namespace BlockGame
                 return field.blocks.Select(gb => new VisualBlock(gb)).ToList();
             }
         }
-        string debugString = "Debug String Initial Value";
         Vector2 HeldObjectsLastPosition = Vector2.Zero;
 
         public MainPage()
@@ -185,9 +184,11 @@ namespace BlockGame
                 held.DrawAtHolp(session, HeldObjectsLastPosition);
             }
 
+#if DEBUG
             // Draw debug info
             args.DrawingSession.DrawText("Held: " + field.HeldBlock + " Target: " + field.TargetBlock, new Vector2(0,0), Colors.LightGreen);
             args.DrawingSession.DrawText("HOLP: " + HeldObjectsLastPosition.ToString(), new Vector2(0, 25), Colors.LightGreen);
+#endif
         }
 
         private void Page_Unloaded(object sender, RoutedEventArgs e)
