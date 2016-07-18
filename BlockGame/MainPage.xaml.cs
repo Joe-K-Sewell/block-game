@@ -54,10 +54,10 @@ namespace BlockGame
                 }
             }
 
-            private static Vector2 GridOrigin = new Vector2(50, 50);
-            private static Vector2 OutlineSize = new Vector2(50, 50);
-            private static float FillDiameter = 40;
-            private static Vector2 FillVector = new Vector2(FillDiameter, FillDiameter);
+            public static Vector2 GridOrigin = new Vector2(50, 50);
+            public static Vector2 OutlineSize = new Vector2(50, 50);
+            public static float FillDiameter = 40;
+            public static Vector2 FillVector = new Vector2(FillDiameter, FillDiameter);
 
             private Vector2 Center
             {
@@ -126,17 +126,23 @@ namespace BlockGame
                 session.FillRectangle(movingRect, FillColor);
                 session.DrawRectangle(movingRect, Colors.Gray, 2);
             }
+
+            public Vector2 BottomRight()
+            {
+                return new Vector2((float) OutlineRect.Right, (float) OutlineRect.Bottom);
+            }
         }
 
         Playfield field;
-        List<VisualBlock> blocks
+        List<VisualBlock> visualBlocks
         {
             get
             {
-                return field.blocks.Select(gb => new VisualBlock(gb)).ToList();
+                return field.Blocks.Select(gb => new VisualBlock(gb)).ToList();
             }
         }
         Vector2 HeldObjectsLastPosition = Vector2.Zero;
+        Vector2 TextPosition;
 
         public MainPage()
         {
@@ -148,7 +154,10 @@ namespace BlockGame
 
         private void canvas_CreateResources(CanvasAnimatedControl sender, CanvasCreateResourcesEventArgs args)
         {
-
+            var lowerRight = new VisualBlock(field.BottomRightBlock).BottomRight();
+            TextPosition = new Vector2(10, lowerRight.Y + 10);
+            sender.MinHeight = sender.ConvertDipsToPixels(TextPosition.Y + VisualBlock.OutlineSize.Y, CanvasDpiRounding.Ceiling);
+            sender.MinWidth = sender.ConvertDipsToPixels(lowerRight.X, CanvasDpiRounding.Ceiling);
         }
 
         private void canvas_Update(ICanvasAnimatedControl sender, CanvasAnimatedUpdateEventArgs args)
@@ -161,7 +170,7 @@ namespace BlockGame
             var session = args.DrawingSession;
             
             // Draw grid
-            foreach (var vb in blocks)
+            foreach (var vb in visualBlocks)
             {
                 vb.DrawGridline(session);
                 if (vb.UnderlyingBlock != field.HeldBlock)
@@ -189,6 +198,9 @@ namespace BlockGame
             args.DrawingSession.DrawText("Held: " + field.HeldBlock + " Target: " + field.TargetBlock, new Vector2(0,0), Colors.LightGreen);
             args.DrawingSession.DrawText("HOLP: " + HeldObjectsLastPosition.ToString(), new Vector2(0, 25), Colors.LightGreen);
 #endif
+
+            // Draw text
+            session.DrawText("Moves used: " + field.MovesUsed, TextPosition, Colors.White);
         }
 
         private void Page_Unloaded(object sender, RoutedEventArgs e)
@@ -200,12 +212,12 @@ namespace BlockGame
         private VisualBlock GetVisualBlock(GameBlock gb)
         {
             if (gb == null) { return null; }
-            return blocks.Single(vb => vb.UnderlyingBlock == gb);
+            return visualBlocks.Single(vb => vb.UnderlyingBlock == gb);
         }
 
         private VisualBlock GetBlockUnder(Point p)
         {
-            foreach (var b in blocks)
+            foreach (var b in visualBlocks)
             {
                 if (b.PointHit(p))
                 {

@@ -48,7 +48,7 @@ namespace BlockGame
         // Use a list because we want to be able to swap or move to other
         // groups more easily. A grid would be OK if the blocks were never going
         // to have gravity, etc.
-        public List<GameBlock> blocks = new List<GameBlock>();
+        private List<GameBlock> blocks = new List<GameBlock>();
         private Random rand = new Random();
 
         public void GenerateBlocks()
@@ -63,9 +63,24 @@ namespace BlockGame
             }
         }
         
+        public Int32 MovesUsed { get; private set; }
         public GameBlock HeldBlock { get; set; }
         public GameBlock TargetBlock { get; set; }
-        
+        public GameBlock BottomRightBlock
+        {
+            get
+            {
+                return blocks.Single(b => b.Row == HEIGHT - 1 && b.Column == WIDTH - 1);
+            }
+        }
+        public IEnumerable<GameBlock> Blocks
+        {
+            get
+            {
+                return blocks;
+            }
+        }
+
         public void SwapBlocks()
         {
             if (HeldBlock == null || TargetBlock == null) { return; }
@@ -79,6 +94,7 @@ namespace BlockGame
 
             HeldBlock = null;
             TargetBlock = null;
+            MovesUsed++;
         }
     }
 }
