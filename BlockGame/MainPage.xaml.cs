@@ -41,14 +41,14 @@ namespace BlockGame
                             return Colors.Red;
                         case GameColor.White:
                             return Colors.White;
-                        case GameColor.Blue:
-                            return Colors.Blue;
-                        case GameColor.Brown:
-                            return Colors.BurlyWood;
-                        case GameColor.Green:
-                            return Colors.Green;
-                        case GameColor.Yellow:
-                            return Colors.Yellow;
+                        //case GameColor.Blue:
+                        //    return Colors.Blue;
+                        //case GameColor.Brown:
+                        //    return Colors.BurlyWood;
+                        //case GameColor.Green:
+                        //    return Colors.Green;
+                        //case GameColor.Yellow:
+                        //    return Colors.Yellow;
                     }
                     throw new NotImplementedException();
                 }
@@ -201,6 +201,7 @@ namespace BlockGame
 
             // Draw text
             session.DrawText("Moves used: " + field.MovesUsed, TextPosition, Colors.White);
+            session.DrawText("Solved: " + field.IsSolved, TextPosition + new Vector2(0, 50), Colors.White);
         }
 
         private void Page_Unloaded(object sender, RoutedEventArgs e)

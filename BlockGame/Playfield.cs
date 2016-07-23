@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -11,10 +12,10 @@ namespace BlockGame
         Empty,
         Red,
         White,
-        Blue,
-        Green,
-        Yellow,
-        Brown,
+        //Blue,
+        //Green,
+        //Yellow,
+        //Brown,
         MaxValue
     }
 
@@ -38,12 +39,48 @@ namespace BlockGame
         {
             return "[" + Row + "," + Column + "] (" + Color + ")";
         }
+
+        internal bool IsAdjacentTo(GameBlock other)
+        {
+            int diff;
+            if (this.Row == other.Row)
+            {
+                diff = this.Column - other.Column;
+            }
+            else if (this.Column == other.Column)
+            {
+                diff = this.Row - other.Row;
+            }
+            else
+            {
+                return false;
+            }
+
+            return Math.Abs(diff) == 1;
+        }
+
+        public override bool Equals(object obj)
+        {
+            var other = obj as GameBlock;
+            if (other != null)
+            {
+                return this.Column == other.Column
+                    && this.Row == other.Row
+                    && this.Color == other.Color;
+            }
+            return false;
+        }
+
+        public override int GetHashCode()
+        {
+            return Column + 7 * Row;
+        }
     }
     
     internal class Playfield
     {
-        public const int HEIGHT = 6;
-        public const int WIDTH = 5;
+        public const int HEIGHT = 3;
+        public const int WIDTH = 3;
 
         // Use a list because we want to be able to swap or move to other
         // groups more easily. A grid would be OK if the blocks were never going
@@ -103,11 +140,117 @@ namespace BlockGame
                 BlockDest.Row = tempRow;
                 BlockDest.Column = tempCol;
                 MovesUsed++;
+                CachedSolveValue = null;
             }
             
             BlockHeld = null;
             BlockDest = null;   
         }
 
+        private bool? CachedSolveValue = null;
+
+        public bool IsSolved
+        {
+            get
+            {
+                if (CachedSolveValue.HasValue)
+                {
+                    return CachedSolveValue.Value;
+                }
+
+                foreach (GameColor color in Enum.GetValues(typeof(GameColor)))
+                {
+                    if (!IsColorSolved(color))
+                    {
+                        CachedSolveValue = false;
+                        return false;
+                    }
+                }
+                CachedSolveValue = true;
+                return true;
+            }
+        }
+
+        private bool IsColorSolved(GameColor color)
+        {
+            // A color is solved if each block can reach every other block of the same
+            // color by travelling vertically or horizontally only over its own colors
+            if (color == GameColor.Empty || color == GameColor.MaxValue)
+            {
+                return true;
+            }
+
+            var blocksOfThisColor = blocks.Where(b => b.Color == color);
+
+            foreach (var source in blocksOfThisColor)
+            {
+                foreach (var dest in blocksOfThisColor)
+                {
+                    var isPath = IsPathBetween(blocksOfThisColor, source, dest);
+                    if (!isPath) { return false; }
+                }
+            }
+
+            return true;
+        }
+
+        private class TraversedNode
+        {
+            internal GameBlock block;
+            internal bool wasDiscovered;
+
+            public TraversedNode(GameBlock b)
+            {
+                block = b;
+                wasDiscovered = false;
+            }
+
+            public override string ToString()
+            {
+                return block.ToString() + (wasDiscovered ? "!" : ".");
+            }
+        }
+
+        private bool IsPathBetween(IEnumerable<GameBlock> blocks, GameBlock source, GameBlock dest)
+        {
+            var graph = blocks.Select(b => new TraversedNode(b)).ToList();
+            Debug.WriteLine("IsPathBetween {0} {1}", source, dest);
+            LogGraph(graph);
+
+            var stack = new Stack<TraversedNode>();
+            stack.Push(graph.Single(n => n.block == source));
+
+            while (stack.Count != 0)
+            {
+                var cur = stack.Pop();
+                Debug.WriteLine(" Popped {0}", cur);
+                if (!cur.wasDiscovered && !stack.Contains(cur))
+                {
+                    cur.wasDiscovered = true;
+                    LogGraph(graph);
+
+                    if (cur.block == dest) { return true; }
+
+                    foreach (var next in graph.Where(n => n.block.IsAdjacentTo(cur.block)))
+                    {
+                        if (!next.wasDiscovered)
+                        {
+                            Debug.WriteLine(" Pushed {0}", next);
+                            stack.Push(next);
+                        }
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        private void LogGraph(IEnumerable<TraversedNode> graph)
+        {
+            foreach (var node in graph)
+            {
+                Debug.WriteLine(node);
+            }
+        }
     }
 }
