@@ -54,9 +54,9 @@ namespace BlockGame
                 }
             }
 
-            public static Vector2 GridOrigin = new Vector2(50, 50);
-            public static Vector2 OutlineSize = new Vector2(50, 50);
-            public static float FillDiameter = 40;
+            public static Vector2 GridOrigin = new Vector2(100, 100);
+            public static Vector2 OutlineSize = new Vector2(100, 100);
+            public static float FillDiameter = 85;
             public static Vector2 FillVector = new Vector2(FillDiameter, FillDiameter);
 
             private Vector2 Center
@@ -173,21 +173,21 @@ namespace BlockGame
             foreach (var vb in visualBlocks)
             {
                 vb.DrawGridline(session);
-                if (vb.UnderlyingBlock != field.HeldBlock)
+                if (vb.UnderlyingBlock != field.BlockHeld)
                 {
                     vb.DrawAtGrid(session);
                 }
             }
 
             // Draw extra outline
-            var target = GetVisualBlock(field.TargetBlock);
+            var target = GetVisualBlock(field.BlockDest);
             if (target != null)
             {
                 target.DrawHighlightedOutline(session);
             }
 
             // Draw held block
-            var held = GetVisualBlock(field.HeldBlock);
+            var held = GetVisualBlock(field.BlockHeld);
             if (held != null)
             {
                 held.DrawAtHolp(session, HeldObjectsLastPosition);
@@ -195,7 +195,7 @@ namespace BlockGame
 
 #if DEBUG
             // Draw debug info
-            args.DrawingSession.DrawText("Held: " + field.HeldBlock + " Target: " + field.TargetBlock, new Vector2(0,0), Colors.LightGreen);
+            args.DrawingSession.DrawText("Held: " + field.BlockHeld + " Target: " + field.BlockDest, new Vector2(0,0), Colors.LightGreen);
             args.DrawingSession.DrawText("HOLP: " + HeldObjectsLastPosition.ToString(), new Vector2(0, 25), Colors.LightGreen);
 #endif
 
@@ -231,10 +231,9 @@ namespace BlockGame
         {
             var point = e.GetCurrentPoint(canvas).Position;
             var blockUnder = GetBlockUnder(point);
-
+            
             if (blockUnder == null) { return; }
-            field.HeldBlock = GetBlockUnder(point).UnderlyingBlock;
-            field.TargetBlock = field.HeldBlock;
+            field.HoldBlock(blockUnder.UnderlyingBlock);
 
             HeldObjectsLastPosition = point.ToVector2();
         }
@@ -242,21 +241,20 @@ namespace BlockGame
         private void canvas_PointerMoved(object sender, Windows.UI.Xaml.Input.PointerRoutedEventArgs e)
         {
             var point = e.GetCurrentPoint(canvas).Position;
-            var blockUnder = GetBlockUnder(point);
-            if (e.Pointer.IsInContact) // Good enough
+            if (field.BlockHeld != null)
             {
                 HeldObjectsLastPosition = point.ToVector2();
+                var blockUnder = GetBlockUnder(point);
                 if (blockUnder != null)
                 {
-                    field.TargetBlock = blockUnder.UnderlyingBlock;
+                    field.TargetBlock(blockUnder.UnderlyingBlock);
                 }
             }
         }
 
         private void canvas_PointerReleased(object sender, Windows.UI.Xaml.Input.PointerRoutedEventArgs e)
         {
-            var point = e.GetCurrentPoint(canvas).Position;
-            field.SwapBlocks();
+            field.ReleaseBlock();
         }
     }
 }

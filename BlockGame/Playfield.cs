@@ -18,7 +18,7 @@ namespace BlockGame
         MaxValue
     }
 
-    public class GameBlock
+    internal class GameBlock
     {
         // eventually this will also contain what group the block belongs to
         // but for now there's only the landed group
@@ -40,7 +40,7 @@ namespace BlockGame
         }
     }
     
-    public class Playfield
+    internal class Playfield
     {
         public const int HEIGHT = 6;
         public const int WIDTH = 5;
@@ -64,8 +64,8 @@ namespace BlockGame
         }
         
         public Int32 MovesUsed { get; private set; }
-        public GameBlock HeldBlock { get; set; }
-        public GameBlock TargetBlock { get; set; }
+        public GameBlock BlockHeld { get; private set; }
+        public GameBlock BlockDest { get; private set; }
         public GameBlock BottomRightBlock
         {
             get
@@ -81,20 +81,33 @@ namespace BlockGame
             }
         }
 
-        public void SwapBlocks()
+        public void HoldBlock(GameBlock underlyingBlock)
         {
-            if (HeldBlock == null || TargetBlock == null) { return; }
-
-            int tempRow = HeldBlock.Row;
-            int tempCol = HeldBlock.Column;
-            HeldBlock.Row = TargetBlock.Row;
-            HeldBlock.Column = TargetBlock.Column;
-            TargetBlock.Row = tempRow;
-            TargetBlock.Column = tempCol;
-
-            HeldBlock = null;
-            TargetBlock = null;
-            MovesUsed++;
+            BlockHeld = underlyingBlock;
+            BlockDest = underlyingBlock;
         }
+
+        public void TargetBlock(GameBlock underlyingBlock)
+        {
+            BlockDest = underlyingBlock;
+        }
+
+        public void ReleaseBlock()
+        {
+            if (BlockHeld != null && BlockDest != null && BlockHeld != BlockDest)
+            {
+                int tempRow = BlockHeld.Row;
+                int tempCol = BlockHeld.Column;
+                BlockHeld.Row = BlockDest.Row;
+                BlockHeld.Column = BlockDest.Column;
+                BlockDest.Row = tempRow;
+                BlockDest.Column = tempCol;
+                MovesUsed++;
+            }
+            
+            BlockHeld = null;
+            BlockDest = null;   
+        }
+
     }
 }
