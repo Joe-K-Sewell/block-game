@@ -41,14 +41,14 @@ namespace BlockGame
                             return Colors.Red;
                         case GameColor.White:
                             return Colors.White;
-                        //case GameColor.Blue:
-                        //    return Colors.Blue;
-                        //case GameColor.Brown:
-                        //    return Colors.BurlyWood;
-                        //case GameColor.Green:
-                        //    return Colors.Green;
-                        //case GameColor.Yellow:
-                        //    return Colors.Yellow;
+                        case GameColor.Blue:
+                            return Colors.Blue;
+                        case GameColor.Brown:
+                            return Colors.BurlyWood;
+                        case GameColor.Green:
+                            return Colors.Green;
+                        case GameColor.Yellow:
+                            return Colors.Yellow;
                     }
                     throw new NotImplementedException();
                 }

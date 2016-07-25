@@ -12,10 +12,10 @@ namespace BlockGame
         Empty,
         Red,
         White,
-        //Blue,
-        //Green,
-        //Yellow,
-        //Brown,
+        Blue,
+        Green,
+        Yellow,
+        Brown,
         MaxValue
     }
 
@@ -79,8 +79,8 @@ namespace BlockGame
     
     internal class Playfield
     {
-        public const int HEIGHT = 3;
-        public const int WIDTH = 3;
+        public const int HEIGHT = 5;
+        public const int WIDTH = 6;
 
         // Use a list because we want to be able to swap or move to other
         // groups more easily. A grid would be OK if the blocks were never going
