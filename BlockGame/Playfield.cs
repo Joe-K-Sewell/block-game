@@ -181,15 +181,15 @@ namespace BlockGame
             }
 
             var blocksOfThisColor = blocks.Where(b => b.Color == color);
-
-            foreach (var source in blocksOfThisColor)
+            if (!blocksOfThisColor.Any()) { return true; }
+            
+            var source = blocksOfThisColor.First();
+            foreach (var dest in blocksOfThisColor)
             {
-                foreach (var dest in blocksOfThisColor)
-                {
-                    var isPath = IsPathBetween(blocksOfThisColor, source, dest);
-                    if (!isPath) { return false; }
-                }
+                var isPath = IsPathBetween(blocksOfThisColor, source, dest);
+                if (!isPath) { return false; }
             }
+            
 
             return true;
         }
